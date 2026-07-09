@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > For user-friendly release highlights, see the [GitHub Releases](https://github.com/ZhuLinsen/daily_stock_analysis/releases) page.
 
 ## [Unreleased]
+- [修复] 英文/韩文报告本地化收敛：检查清单六项标准条目在渲染层确定性翻译（不再依赖 LLM 遵从输出语言指令），财务摘要/股东回报金额单位在 en/ko 下改用 B/M/K + ISO 币种代码（如 76.09B USD）。
 - [修复] Telegram 分段发送：单段超过 4096 字符时按行硬切后再发送，修复长英文报告部分消息块被 Telegram 以 message is too long 拒绝的问题。
 - [新功能] 泰国 SET 个股 suffix-only 支持（`.BK`，如 PTT.BK）：市场识别、YFinance 数据路由、XBKK 交易日历与泰股 Prompt 语义；范围对齐台股最初 MVP，详见 docs/market-support.md。
 - [改进] GitHub Actions 每日分析工作流补齐 TickFlow 数据源环境变量映射，并收敛 README 数据源稳定性说明到完整指南。

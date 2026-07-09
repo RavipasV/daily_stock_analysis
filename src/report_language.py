@@ -802,6 +802,40 @@ def _translate_from_map(
     return raw_text
 
 
+_CHECKLIST_PHRASE_TRANSLATIONS: tuple = (
+    ("多头排列", {"en": "Bullish MA alignment", "ko": "정배열"}),
+    ("乖离率合理", {"en": "Bias ratio reasonable", "ko": "이격도 적정"}),
+    ("强势趋势可放宽", {"en": "may relax in strong trends", "ko": "강한 추세에서는 완화 가능"}),
+    ("量能配合", {"en": "Volume confirmation", "ko": "거래량 동반"}),
+    ("无重大利空", {"en": "No major negative news", "ko": "중대 악재 없음"}),
+    ("筹码健康", {"en": "Chip structure healthy", "ko": "매물대 양호"}),
+    ("PE估值合理", {"en": "Reasonable PE valuation", "ko": "PER 밸류에이션 적정"}),
+)
+
+_CHECKLIST_ITEM_WORD = {"en": "Check", "ko": "체크"}
+
+
+def localize_checklist_item(value: Any, language: Optional[str]) -> str:
+    """Translate the standard Chinese action-checklist labels for en/ko reports.
+
+    The LLM prompt lists the six checklist items in Chinese as literal template
+    values, and models sometimes echo them verbatim despite the output-language
+    directive. This keeps non-Chinese reports deterministic regardless of model
+    compliance; unknown/custom items pass through unchanged.
+    """
+    normalized_language = normalize_report_language(language)
+    text = str(value or "")
+    if not text or normalized_language == "zh":
+        return text
+    check_word = _CHECKLIST_ITEM_WORD[normalized_language]
+    text = re.sub(r"检查项\s*(\d+)\s*[:：]\s*", rf"{check_word} \1: ", text)
+    for phrase, translations in _CHECKLIST_PHRASE_TRANSLATIONS:
+        text = text.replace(phrase, translations[normalized_language])
+    if re.search(r"[（）：]", text):
+        text = text.replace("（", " (").replace("）", ")").replace("：", ": ")
+    return text
+
+
 def localize_operation_advice(value: Any, language: Optional[str]) -> str:
     """Translate operation advice between Chinese and English when recognized."""
     return _translate_from_map(
