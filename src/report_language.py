@@ -232,6 +232,40 @@ _GENERIC_STOCK_NAME_BY_LANGUAGE = {
     "ko": "미확인 종목",
 }
 
+# English display name + one-line description for stocks whose data providers
+# only return Chinese names (mainly A-shares). Used for en/ko reports; extend
+# freely — codes not listed keep their provider-supplied name.
+_EN_STOCK_INFO: Dict[str, tuple] = {
+    "600519": (
+        "Kweichow Moutai",
+        "China's leading premium baijiu (liquor) maker and most valuable consumer brand",
+    ),
+    "300750": (
+        "CATL",
+        "World's largest EV battery manufacturer (Contemporary Amperex Technology)",
+    ),
+    "601398": (
+        "ICBC",
+        "Industrial & Commercial Bank of China — world's largest bank by assets, state-owned",
+    ),
+    "601318": (
+        "Ping An Insurance",
+        "China's largest insurer, diversified financial and fintech group",
+    ),
+    "002594": (
+        "BYD",
+        "Vertically integrated electric vehicle and battery giant",
+    ),
+}
+
+
+def get_stock_description(code: Any, language: Optional[str]) -> str:
+    """Return a short English stock description for en/ko reports, else ''."""
+    if normalize_report_language(language) == "zh":
+        return ""
+    info = _EN_STOCK_INFO.get(str(code or "").strip().upper())
+    return info[1] if info else ""
+
 _REPORT_LABELS: Dict[str, Dict[str, str]] = {
     "zh": {
         "dashboard_title": "决策仪表盘",
@@ -1018,11 +1052,20 @@ def get_signal_level(advice: Any, score: Any, language: Optional[str]) -> tuple[
 
 
 def get_localized_stock_name(value: Any, code: Any, language: Optional[str]) -> str:
-    """Return a localized stock name placeholder when the original name is missing."""
+    """Return a localized stock name placeholder when the original name is missing.
+
+    For en/ko reports, known codes with only Chinese provider names (see
+    _EN_STOCK_INFO) render their English display name instead.
+    """
+    normalized_language = normalize_report_language(language)
+    if normalized_language != "zh":
+        info = _EN_STOCK_INFO.get(str(code or "").strip().upper())
+        if info:
+            return info[0]
     raw_text = str(value or "").strip()
     if not _is_placeholder_stock_name(raw_text, code):
         return raw_text
-    return _GENERIC_STOCK_NAME_BY_LANGUAGE[normalize_report_language(language)]
+    return _GENERIC_STOCK_NAME_BY_LANGUAGE[normalized_language]
 
 
 def get_sentiment_label(score: int, language: Optional[str]) -> str:

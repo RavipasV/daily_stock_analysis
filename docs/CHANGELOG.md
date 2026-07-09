@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > For user-friendly release highlights, see the [GitHub Releases](https://github.com/ZhuLinsen/daily_stock_analysis/releases) page.
 
 ## [Unreleased]
+- [改进] en/ko 报告为已映射的 A 股代码渲染英文股票名与一行英文简介（如 600519 → Kweichow Moutai），映射表在 src/report_language.py 可扩展；中文报告不受影响。
 - [修复] 英文/韩文报告本地化收敛：检查清单六项标准条目在渲染层确定性翻译（不再依赖 LLM 遵从输出语言指令），财务摘要/股东回报金额单位在 en/ko 下改用 B/M/K + ISO 币种代码（如 76.09B USD）。
 - [修复] Telegram 分段发送：单段超过 4096 字符时按行硬切后再发送，修复长英文报告部分消息块被 Telegram 以 message is too long 拒绝的问题。
 - [新功能] 泰国 SET 个股 suffix-only 支持（`.BK`，如 PTT.BK）：市场识别、YFinance 数据路由、XBKK 交易日历与泰股 Prompt 语义；范围对齐台股最初 MVP，详见 docs/market-support.md。

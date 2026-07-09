@@ -44,6 +44,7 @@ from src.report_language import (
     get_signal_level,
     get_chip_unavailable_reason,
     is_chip_structure_unavailable,
+    get_stock_description,
     localize_checklist_item,
     localize_chip_health,
     localize_operation_advice,
@@ -872,6 +873,11 @@ class NotificationService(
                 report_lines.extend([
                     f"### {emoji} {self._get_display_name(result, report_language)} ({result.code})",
                     "",
+                ])
+                stock_description = get_stock_description(result.code, report_language)
+                if stock_description:
+                    report_lines.extend([f"_{stock_description}_", ""])
+                report_lines.extend([
                     f"**{labels['action_advice_label']}：{localize_operation_advice(result.operation_advice, report_language)}** | "
                     f"**{labels['score_label']}：{result.sentiment_score}** | "
                     f"**{labels['trend_label']}：{localize_trend_prediction(result.trend_prediction, report_language)}** | "
@@ -1676,6 +1682,9 @@ class NotificationService(
 
             # 核心信息行
             lines.append(f"### {emoji} {self._get_display_name(result, report_language)}({result.code})")
+            stock_description = get_stock_description(result.code, report_language)
+            if stock_description:
+                lines.append(f"_{stock_description}_")
             lines.append(
                 f"**{localize_operation_advice(result.operation_advice, report_language)}** | "
                 f"{labels['score_label']}:{result.sentiment_score} | "
