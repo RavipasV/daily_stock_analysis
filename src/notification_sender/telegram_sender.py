@@ -242,8 +242,14 @@ class TelegramSender:
         timeout_seconds: Optional[float] = None,
     ) -> bool:
         """分段发送长 Telegram 消息"""
-        # 按段落分割
-        sections = content.split("\n---\n")
+        # 按段落分割；单段超过 max_length 时按行硬切，否则该段作为独立块
+        # 发送仍会超限并被 Telegram 以 400 (message is too long) 拒绝。
+        sections = []
+        for raw_section in content.split("\n---\n"):
+            if len(raw_section) + 5 > max_length:
+                sections.extend(self._split_oversized_section(raw_section, max_length - 5))
+            else:
+                sections.append(raw_section)
 
         current_chunk = []
         current_length = 0
@@ -277,6 +283,34 @@ class TelegramSender:
                 all_success = False
 
         return all_success
+
+    @staticmethod
+    def _split_oversized_section(section: str, max_length: int) -> list:
+        """把超长段落按行切成不超过 max_length 的片段（超长单行按字符硬切）。"""
+        pieces = []
+        current_lines = []
+        current_length = 0
+        for line in section.split("\n"):
+            line_length = len(line) + 1  # +1 for "\n"
+            if line_length > max_length:
+                if current_lines:
+                    pieces.append("\n".join(current_lines))
+                    current_lines = []
+                    current_length = 0
+                step = max(1, max_length - 1)
+                for start in range(0, len(line), step):
+                    pieces.append(line[start:start + step])
+                continue
+            if current_length + line_length > max_length:
+                pieces.append("\n".join(current_lines))
+                current_lines = [line]
+                current_length = line_length
+            else:
+                current_lines.append(line)
+                current_length += line_length
+        if current_lines:
+            pieces.append("\n".join(current_lines))
+        return pieces
 
     def _send_telegram_photo(self, image_bytes: bytes) -> bool:
         """Send image via Telegram sendPhoto API (Issue #289)."""
