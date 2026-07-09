@@ -57,12 +57,14 @@ _MARKET_LABELS_ZH = {
     "hk": "港股",
     "us": "美股",
     "tw": "台股",
+    "th": "泰股",
 }
 _MARKET_LABELS_EN = {
     "cn": "A-shares",
     "hk": "Hong Kong",
     "us": "US",
     "tw": "Taiwan",
+    "th": "Thailand",
 }
 _PHASE_LABELS_ZH = {
     "premarket": "盘前",
@@ -142,7 +144,7 @@ def rebuild_market_phase_summary_for_stock_code(
         return None
 
     market = get_market_for_stock(str(stock_code or "").strip())
-    if market not in {"jp", "kr", "tw"}:
+    if market not in {"jp", "kr", "tw", "th"}:
         return dict(summary)
 
     phase = str(summary.get("phase", "")).strip()

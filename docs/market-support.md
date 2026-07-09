@@ -122,6 +122,31 @@ PY
 
 回滚方式：移除 `tw` 市场识别、交易日历注册、YFinance 路由扩展、三大法人资料层/报告消费、TWD 标注、服务层/API 市场枚举及前端市场类型放行，并删除本文档中的能力声明。
 
+## 泰国个股支持（suffix-only MVP）
+
+当前阶段支持手动输入泰国 SET 股票的 Yahoo Finance 后缀代码，进入既有个股分析、历史保存和基础报告展示链路。范围对齐台股最初的 suffix-only MVP：仅市场识别与数据路由。
+
+支持格式：
+
+- SET 上市：`PTT.BK`、`ADVANC.BK`、`KBANK.BK`
+- 代码 base 为**字母开头的字母数字组合**（如 `PTT`、`ADVANC`、`S11`），与日韩台的纯数字 base 不同；共享市场代码工具通过 alpha-base 规则识别。
+
+约束与边界：
+
+- **严格 suffix-only**：裸 `PTT` 等不带后缀的代码保持既有美股符号语义；纯数字 base（如 `1234.BK`）不会进入泰股语义。仅显式 `.BK` 后缀返回 `th`。
+- 泰股日线和基础实时/近实时行情只走 `YfinanceFetcher`，不尝试 AkShare、Tushare、Efinance、Pytdx、Baostock 等 A 股专属数据源。
+- 基本面复用既有 offshore yfinance 轻量路径；A 股专属资金流、龙虎榜、板块等能力按 `not_supported` 降级。
+- 报告 Prompt 已增加泰股市场语义（泰铢、泰国央行、NVDR 外资持股限制、SET ±30% 涨跌停），并明确禁止将 `.BK` 代码当作美股分析。
+- 交易日历注册 `th: XBKK / Asia/Bangkok`；收盘集合竞价按 16:30-16:40 随机收盘窗口以 10 分钟启发式建模（`_CLOSING_AUCTION_WINDOW_MINUTES["th"]=10`）。
+
+不承诺项：
+
+- 不承诺实时行情；Yahoo Finance 泰股数据可能延迟、新闻覆盖有限或字段缺失。
+- 不承诺泰股大盘复盘；`MARKET_REVIEW_REGION` 不接受 `th`。
+- DecisionSignal / Portfolio / Intelligence 写路径尚未接入 `th`（提取器按 `VALID_MARKETS` 显式跳过，不抛错）；泰股股票索引/种子与 Web 自动补全未接入。
+
+回滚方式：移除共享市场代码工具中的 `th` alpha-base 规则、`th` 市场识别与路由扩展、交易日历注册、Prompt 市场语义及 `tests/test_th_market_support.py`，并删除本文档中的能力声明。
+
 ## 日本/韩国 Portfolio 与 Market Light 边界（Issue #1815 Phase 3）
 
 Portfolio 允许 JP/KR 账户、交易和持仓快照进入现有链路，但会将账户/持仓快照标记为 `data_quality=partial`，并通过 `limitations` 明确 `realtime_quote_best_effort`、`fx_and_cost_basis_partial`、`sector_and_risk_metrics_limited`；不承诺 JPY/KRW 汇率、成本、市值、行业集中度或组合风险指标完整口径。

@@ -36,8 +36,10 @@ def detect_market(stock_code: Optional[str]) -> str:
     if code.isdigit() and len(code) == 5:
         return "hk"
 
-    # Suffix-only Yahoo symbols for JP/KR/TW. Bare Korean/Taiwan numeric
+    # Suffix-only Yahoo symbols for JP/KR/TW/TH. Bare Korean/Taiwan numeric
     # codes keep existing fallback semantics to avoid cross-market collisions.
+    # Checked before the US regex so Thai alpha tickers (PTT.BK) are not
+    # misclassified as US symbols.
     suffix_market = get_suffix_market(code)
     if suffix_market:
         return suffix_market
@@ -77,6 +79,10 @@ _MARKET_ROLES = {
     "tw": {
         "zh": "台股",
         "en": "Taiwan stock",
+    },
+    "th": {
+        "zh": "泰股",
+        "en": "Thailand stock",
     },
 }
 
@@ -144,6 +150,21 @@ _MARKET_GUIDELINES = {
             "electronics-foundry supply chain, the three institutional investor groups (foreign / "
             "investment-trust / dealer), margin trading and day trading, and the TWSE/TPEx ±10% daily "
             "price limit; do not apply China A-share-specific concepts such as Northbound flows or Dragon Tiger lists."
+        ),
+    },
+    "th": {
+        "zh": (
+            "- 本次分析对象为 **泰股**（泰国证券交易所 SET 上市股票，必须带 `.BK` 后缀，如 PTT.BK）。\n"
+            "- 请按泰国市场语境分析，关注泰铢（THB）汇率、泰国央行政策、旅游/能源/银行业周期、"
+            "外资持股限制（NVDR）、以及 SET ±30% 涨跌停制度；"
+            "不要套用 A 股专属的北向资金、龙虎榜、融资融券等概念。"
+        ),
+        "en": (
+            "- This analysis covers a **Thailand stock** (SET-listed, Yahoo Finance suffix `.BK`, e.g. PTT.BK).\n"
+            "- Use Thailand-market context: THB FX, Bank of Thailand policy, tourism/energy/banking "
+            "cycles, foreign-ownership limits (NVDR), and the SET ±30% daily price limit (ceiling & floor); "
+            "do not apply China A-share-specific concepts such as Northbound flows, Dragon Tiger lists, "
+            "or margin-financing narratives, and do not treat the stock as US-listed."
         ),
     },
 }

@@ -93,6 +93,15 @@ class YfinanceFetcher(BaseFetcher):
         """
         return is_suffix_market_symbol(stock_code, "tw")
 
+    @staticmethod
+    def _is_th_suffix_stock(stock_code: str) -> bool:
+        """Return True for supported Thailand suffix-only Yahoo symbols (SET `.BK`).
+
+        Thai base codes are alphabetic tickers (e.g. PTT, ADVANC), unlike the
+        numeric JP/KR/TW bases.
+        """
+        return is_suffix_market_symbol(stock_code, "th")
+
     def _convert_stock_code(self, stock_code: str) -> str:
         """
         转换股票代码为 Yahoo Finance 格式
@@ -130,9 +139,13 @@ class YfinanceFetcher(BaseFetcher):
             logger.debug(f"识别为美股代码: {code}")
             return code
 
-        # 日股/韩股/台股 MVP：显式 Yahoo Finance suffix-only 代码，原样传给 Yahoo。
-        if self._is_jp_kr_suffix_stock(code) or self._is_tw_suffix_stock(code):
-            logger.debug(f"识别为日韩台 Yahoo suffix 代码: {code}")
+        # 日股/韩股/台股/泰股 MVP：显式 Yahoo Finance suffix-only 代码，原样传给 Yahoo。
+        if (
+            self._is_jp_kr_suffix_stock(code)
+            or self._is_tw_suffix_stock(code)
+            or self._is_th_suffix_stock(code)
+        ):
+            logger.debug(f"识别为日韩台泰 Yahoo suffix 代码: {code}")
             return code
 
         # 港股：hk前缀 -> .HK后缀
@@ -804,13 +817,14 @@ class YfinanceFetcher(BaseFetcher):
                 index_name=index_name,
             )
 
-        # 仅处理美股股票或 JP/KR/TW suffix-only 股票
+        # 仅处理美股股票或 JP/KR/TW/TH suffix-only 股票
         if not (
             self._is_us_stock(stock_code)
             or self._is_jp_kr_suffix_stock(stock_code)
             or self._is_tw_suffix_stock(stock_code)
+            or self._is_th_suffix_stock(stock_code)
         ):
-            logger.debug(f"[Yfinance] {stock_code} 不是美股或日韩 suffix 代码，跳过")
+            logger.debug(f"[Yfinance] {stock_code} 不是美股或日韩台泰 suffix 代码，跳过")
             return None
 
         try:
