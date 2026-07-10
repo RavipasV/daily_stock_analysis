@@ -58,7 +58,7 @@ jobs:
           # ==========================================
           # Stock list — Thailand SET dividend watchlist
           # ==========================================
-          STOCK_LIST_CONFIG: "BBL.BK,KBANK.BK,PTTEP.BK,PTT.BK,RATCH.BK,ADVANC.BK"
+          STOCK_LIST_CONFIG: "BBL.BK,KBANK.BK,PTTEP.BK,PTT.BK,RATCH.BK,ADVANC.BK,AOT.BK"
 
           # ==========================================
           # AI config
