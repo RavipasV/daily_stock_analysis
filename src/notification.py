@@ -1179,26 +1179,34 @@ class NotificationService(
         ]
         self._append_market_status_line(report_lines, results, report_language)
 
-        # === 新增：分析结果摘要 (Issue #112) ===
-        if results:
-            report_lines.extend([
+        # === 分析结果摘要 (Issue #112) ===
+        # 详情模式下摘要移到报告末尾：Telegram 分段推送时个股详情先到，
+        # 摘要作为最后一条消息（收尾回顾）；summary_only 模式仍在顶部输出。
+        def _build_summary_block() -> List[str]:
+            block = [
                 f"## 📊 {labels['summary_heading']}",
                 "",
-            ])
+            ]
             for r in sorted_results:
                 _, signal_emoji, _ = self._get_signal_level(r)
                 display_name = self._get_display_name(r, report_language)
-                report_lines.append(
+                block.append(
                     f"{signal_emoji} **{display_name}({r.code})**: "
                     f"{localize_operation_advice(r.operation_advice, report_language)} | "
                     f"{labels['score_label']} {r.sentiment_score} | "
                     f"{localize_trend_prediction(r.trend_prediction, report_language)}"
                 )
-            report_lines.extend([
+            block.extend([
                 "",
                 "---",
                 "",
             ])
+            return block
+
+        if results and self._report_summary_only:
+            report_lines.extend(_build_summary_block())
+        elif results:
+            report_lines.extend(["", "---", ""])
 
         # 逐个股票的决策仪表盘（Issue #262: summary_only 时跳过详情）
         if not self._report_summary_only:
@@ -1459,6 +1467,10 @@ class NotificationService(
                     "---",
                     "",
                 ])
+
+        # 摘要收尾（详情模式）：作为 Telegram 分段推送的最后一条消息
+        if results and not self._report_summary_only:
+            report_lines.extend(_build_summary_block())
 
         # 底部（去除免责声明）
         report_lines.extend([
